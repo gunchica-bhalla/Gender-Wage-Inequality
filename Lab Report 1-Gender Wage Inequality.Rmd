@@ -1,0 +1,499 @@
+---
+title: 'Lab Report 1-Gender Wage Inequality: Comparison of Female and Male earnings in the workplace along side the majors they study'
+author: "Gunchica Bhalla"
+geometry: margin=.25in
+output:
+  pdf_document: default
+  word_document: default
+  html_document:
+    df_print: paged
+    theme: cosmo
+header-includes:
+- \usepackage{graphicx}
+- \usepackage{color}
+graphics: yes
+fontsize: 11pt
+---
+
+<!-- You can check templates from this website and change html theme: https://www.datadreaming.org/post/r-markdown-theme-gallery/ -->
+<!-- It won't affect the PDF or Word. -->
+
+### 1. Data structure
+
+```{r}
+## Read data here
+
+knitr::opts_chunk$set(message=FALSE, warning=FALSE)
+
+library('tidyverse') 
+earnings <- read.csv('Data/earnings_female.csv')
+
+employed <- read.csv('Data/employed_gender.csv')
+
+jobs<- read.csv('Data/jobs_gender.csv')
+
+
+```
+
+```{r}
+dim(earnings)
+dim(employed)
+dim(jobs)
+```
+The data is about the Gender Inequality in the work place. The data set has three table earnings which has 264 objects with 3 variables. This table shows age group of women employed in specific years and percentage of that age group that was employed. 
+
+The table jobs has the data regarding the areas people were employed in which year thr number of women employed in that year, the number of men employed in that year. It has 2088 objects and 12 variables which account for year,occupation, eductaion major and minor number of women workers, number of men workers and some other things.
+
+The table employed has 49 observations with 7 variables that provide information regarging the year, the number of full time emplyed people, total number part time employees, the part time female employess and the full time female employees. It also gives information regarding full time male and part time male employees.
+
+```{r}
+str(earnings)
+str (employed)
+str(jobs)
+
+```
+
+Categorical Variables are occupation,major_category,minor_category and year. These are the variables which are read as in and no calculations can be performed on them.
+
+Continous variables are total_earnings,total_earnings_male,total_earnings_female, wage_percent_of_male and percent_female.These variables have infinite values between 2 given values. The rest are dicrete variables. To name them total_workers, total_workers_female and total_workers_male. These are discrete as there can either be 1 worker or 2 1.5 is not an acceptable input for workers.
+
+
+```{r}
+# Commented out as they were affecting the median and mean calculations ...
+#jobs$percent_female=as.factor(jobs$percent_female)
+#jobs$total_earnings=as.factor(jobs$total_earnings)
+#jobs$total_earnings_male=as.factor(jobs$total_earnings_male)
+#jobs$total_earnings_female=as.factor(jobs$total_earnings_female)
+#jobs$wage_percent_of_male=as.factor(jobs$wage_percent_of_male)
+
+occupation.small <- subset(jobs,occupation %in% c('Lawyers',
+                                                  'Chief executives','Mathemeticians',
+                                                  'Industrial production managers','Mechanical engineers',
+                                                  'Engineering technicians, except drafters'))
+
+
+occupation.l <- subset(jobs,occupation %in% c('Bakers','Police Detective',
+                                              'Cargo and freight agents','Data entry keyers',
+                                              'Agriculatural inspectors'))
+
+
+
+```
+
+...
+
+
+
+
+
+
+
+\pagebreak
+
+### 2. Distributions
+
+```{r}
+ library('tidyverse')
+```
+
+```{r, fig.width=10, fig.height=7}
+ggplot(data=jobs,aes(x=total_earnings_female))+ 
+  geom_histogram(colour="white",fill=" sky blue",bins=75) +
+  geom_density(alpha=0.5) + ggtitle("Total Earnings of Female Employees") + 
+  geom_vline(aes(xintercept=median(total_earnings_female,na.rm = T)),colour="black",
+             linetype="dashed",size=1) +
+  geom_vline(aes(xintercept=mean(total_earnings_female,na.rm = T)),
+             colour="red",linetype="dashed",size=1)+theme_minimal()
+
+
+
+ggplot(data=occupation.small,aes(x=total_earnings_female))+ 
+  geom_histogram(colour="white",fill="plum",bins=75) +
+  geom_density(alpha=0.5) + ggtitle("Total earning subset 1") + 
+  geom_vline(aes(xintercept=median(total_earnings_female,na.rm = T)),
+             colour="black",linetype="dashed",size=1) + 
+  geom_vline(aes(xintercept=mean(total_earnings_female,na.rm = T)),
+             colour="red",linetype="dashed",size=1)+theme_minimal()
+
+
+ggplot(data=occupation.l,aes(x=total_earnings_female))+ 
+  geom_histogram(colour="white",fill="Steel Blue",bins=75) +
+  geom_density(alpha=0.5) + ggtitle("Total earning subset 2") + 
+  geom_vline(aes(xintercept=median(total_earnings_female,na.rm = T)),
+             colour="black",linetype="dashed",size=1) + 
+  geom_vline(aes(xintercept=mean(total_earnings_female,na.rm = T)),
+             colour="red",linetype="dashed",size=1)+theme_minimal()
+
+
+```
+"The  graph represents the earning of the female employees without any transformation. According to the representation the graph is postive skewed(right)as the mean (red dashed line) is greater than median(black dashed line). The median is represented by the black dashed line and the red dashed line is the mean. A subset is also the same. The mean is 44681.04 and median is 40191. The subsets though does not seem to have the same representation as the mean in both subsets is smaller than the median, they are negative skewed(left). Mean of subset 1 is 78490.5 and median of subset 1 is 78641. The mean for subset 2 is 30845.42 and median is 31521.5."
+
+
+```{r}
+# transformation to log 
+ggplot(data=jobs,aes(x=log(total_earnings_female)))+ geom_histogram(colour="white",fill="orange",bins =75) + geom_density(alpha=0.5) + 
+  ggtitle("Logarithmic Transformation of Percentage of Female Employees") + 
+  theme_minimal() +
+  geom_vline(aes(xintercept=median(log(total_earnings_female),na.rm=T)),
+             colour="black",linetype="dashed",size=1) +
+  geom_vline(aes(xintercept=mean(log(total_earnings_female),na.rm=T)),
+             colour="red",linetype="dashed",size=1)+
+  theme_minimal()
+
+ggplot(data=occupation.small,aes(x=log(total_earnings_female)))+ 
+  geom_histogram(colour="white",fill="plum",bins=75) +
+  geom_density(alpha=0.5) + ggtitle("Total earning of Female in subset 1") + 
+  geom_vline(aes(xintercept=median(log(total_earnings_female),na.rm = T)),
+             colour="black",linetype="dashed",size=1) + 
+  geom_vline(aes(xintercept=mean(log(total_earnings_female),na.rm = T)),
+             colour="red",linetype="dashed",size=1)+theme_minimal()
+
+ggplot(data=occupation.l,aes(x=log(total_earnings_female)))+ 
+  geom_histogram(colour="white",fill="Steel Blue",bins=75) +
+  geom_density(alpha=0.5) + ggtitle("Total earning of Female in subset 1") + 
+  geom_vline(aes(xintercept=median(log(total_earnings_female),na.rm = T)),
+             colour="black",linetype="dashed",size=1) + 
+  geom_vline(aes(xintercept=mean(log(total_earnings_female),na.rm = T)),
+             colour="red",linetype="dashed",size=1)+theme_minimal()
+
+
+
+```
+
+"The log transformed  graph has a  median is smaller than mean thus it is positive skewed. The median is represented by the black dashed line and the red dashed line is the mean. The mean is 10.60777 and the median is 10.6014.This representatio is closer to a normal distribution as the difference between mean and median is significantly smaller.The subsets however differ as the mean is greater than the median they are negative (left) skewed. The mean for subset 1 is 11.2275 and median is 11.27229. The mean for subset 2 is 10.31433 and median is 10.35838"
+
+
+```{r}
+#transformation to sqrt
+ggplot(data=jobs,aes(x=sqrt(total_earnings_female)))+ geom_histogram(colour="white",fill=" pink",bins=75) +
+  geom_density(alpha=0.5) +
+geom_vline(aes(xintercept=median(sqrt(total_earnings_female),na.rm = T )),
+           colour="black",linetype="dashed",size=1)+
+ggtitle("Square root  Transformation of total earnings of Female") +
+  theme_minimal() +
+  geom_vline(aes(xintercept=mean(sqrt(total_earnings_female),na.rm=T)),
+             colour="red",linetype="dashed",size=1)+ theme_minimal()
+
+ggplot(data=occupation.small,aes(x=sqrt(total_earnings_female)))+ 
+  geom_histogram(colour="white",fill="plum",bins=75) +
+  geom_density(alpha=0.5) + ggtitle("Total earning of Female in in subset 1") + 
+  geom_vline(aes(xintercept=median(sqrt(total_earnings_female),na.rm = T)),
+             colour="black",linetype="dashed",size=1) +
+  geom_vline(aes(xintercept=mean(sqrt(total_earnings_female),na.rm = T)),
+              colour="red",linetype="dashed",size=1)+theme_minimal()
+
+
+ggplot(data=occupation.l,aes(x=sqrt(total_earnings_female)))+ 
+  geom_histogram(colour="white",fill="Steel Blue",bins=75) +
+  geom_density(alpha=0.5) + ggtitle("Total earning of Female in subset 2") + 
+  geom_vline(aes(xintercept=median(sqrt(total_earnings_female),na.rm = T)),
+             colour="black",linetype="dashed",size=1) + 
+  geom_vline(aes(xintercept=mean(sqrt(total_earnings_female),na.rm = T)),colour="red",
+             linetype="dashed",size=1)+theme_minimal()
+```
+
+"The sqrt transformed  graph is positive skewed as median is smaller than mean. The median is represented by the black dashed line and the red dashed line is the mean. For the subsets I cant say the same, in both the subsets the mean is smaller than the median making them positively(right) skewed.The mean is 206.1218 and median is 200.4769.For the subsets though mean is smaller than median thus they are positively (right) skewed. For subset 1 the mean is 277.2658 and median is280.4048 and for subset 2 the mean is 174.6587 and median is 177.5411"
+
+
+
+
+
+```{r}
+#Graph the categorical variable
+#Was not sure if the continuous variable had to stay the same
+ggplot(jobs,aes(x=total_earnings_female,fill=major_category))+ 
+  geom_histogram(colour="white",bins=50) +
+  geom_density(alpha=0.5) + ggtitle("Earnings of Female Employees in different Majors")+
+  theme_minimal()+facet_wrap(~major_category)+theme(legend.position ='none')
+
+test<- occupation.l <- subset(jobs,jobs$major_category %in% c("Service"))
+
+```
+"The graph shows the majors of the female workers. This chart provides insight on the employbality of the major. The multiple bars would represnt data from the 4 different years.
+Computer, Engineering, and Science  (Mean: 69427.31 Median:68925) This graph looks symetric as the difference between mean and median is very little, but even then as the mean is greater than median it is positive (right skewed). This major has the highest paid jobs.
+Education, Legal, Community Service, Arts, and Media (Mean: 46257.66 Median:45081) This graph is clearly positive(right) skewed as the mean is greater than median.
+Healthcare Practitioners and Technical (Mean:68887.46 Median:60984) This graph looks fairly uniform but not symetric as the mean is greater than median thus it is poitive (right) skewed
+Management, Business, and Financial (Mean:59070.36 Median:56810) This graph is positive (right skewed) as the mean is larger than the median.                
+Natural Resources, Construction, and Maintenance (Mean:38549.11 Median:35580) This graph also is positive (right) skewed as the mean is larger than  the median.
+Production, Transportation, and Material Moving  (Mean:32437.85 Median:27883) Its very evidently positive skewed as the mean is larger than the median.        
+Service (Mean:31987.96 Median:28384) This graph is clearly positive(right) skewed as the mean is greater than median.This major has the least paying jobs for women.                                           
+Sales and Office (Mean:37105.95 Median:35631) This graph is clearly positive(right) skewed as the mean is greater than median.
+Through this representation that women in STEM related feilds like engineering and health make the most money but in numbers not as many women are enrolled in Computer, Engineering, and Science majors.
+The graph below showes the number of women in each major which gives an idea of why the means are low. "
+
+```{r}
+ # graph for the categorical variable.
+ggplot(jobs,aes(x=workers_female,fill=major_category))+ geom_histogram(colour="white",bins=30)+
+  geom_density(alpha=0.5) + ggtitle("Number of Female Employees in different Majors")+
+  theme_minimal()+facet_wrap(~major_category)+theme(legend.position = 'none')
+```
+"Computer, Engineering, and Science  (Count: 263 Mean: 28084.07 Median:10357.5) This graph looks symetric as the difference between mean and median is very little, but even then as the mean is greater than median it is positive (right skewed). This major has the highest paid jobs.
+Education, Legal, Community Service, Arts, and Media (Count:168 Mean:150772.2  Median:44728.5) This graph is positive(right) skewed as the mean is greater than median.
+Healthcare Practitioners and Technical (Count:128 Mean:139826.2 Median:54487) This graph has the mean is greater than median thus it is poitive (right) skewed
+Management, Business, and Financial (Count:232 Mean:141420.2 Median:52883) This graph is positive (right skewed) as the mean is larger than the median.                
+Natural Resources, Construction, and Maintenance (Count:328 Mean:4672 Median:1144) This graph also is positive (right) skewed as the mean is larger than  the median.
+Production, Transportation, and Material Moving  (Count:444 Mean:21651.98 Median:2942) Its  positive skewed as the mean is larger than the median.        
+Service (Count:280 Mean:104378.6 Median:28604.5) This graph is  positive(right) skewed as the mean is greater than median.This major has the least paying jobs for women.
+From the above informatinf the count is the number of employed women with that major accross occupations. Most employed women have a major in Production, Transportation, and Material Moving."             
+
+```{r}
+ggplot(occupation.small,aes(x=total_earnings_female,fill=occupation))+
+  geom_histogram(colour="white",bins=30) +
+  geom_density(alpha=0.5) +
+  ggtitle("Total earnings of Female Employees in selected occupations")+theme_minimal()+
+  facet_wrap(~occupation)
+```
+
+>"The graph shows earning of women in different occupations. Lawyers are the highest paid females"
+
+```{r}
+ggplot(occupation.small,aes(x=workers_female,fill=occupation))+ 
+  geom_histogram(colour="white",bins=70) +
+  geom_density(alpha=0.5) +
+  ggtitle("Number of Female Employees in selected occupations")+
+  theme_minimal()
+```
+
+
+The graph represents the number of female employees in selected occupations between 2013 and 2016
+
+
+ 
+
+
+
+\pagebreak
+
+### 3. Comparing Distributions
+```{r}
+ggplot(jobs)+
+geom_histogram(data=subset(jobs,major_category=="Management, Business, and Financial"  ),
+               aes(x=workers_female,y=..count..),fill=" blue",colour="white",bins=20)+
+geom_histogram(data=subset(jobs,major_category=="Computer, Engineering, and Science" ),
+aes(x=workers_female,y=-..count..),fill=" red",colour="white", bins=20) +ggtitle("Employed women and majors") 
+
+```
+
+" I graphed multuple situtaions and choose to describe this one.The graph represents the number of females working with a Management, Business, and Financial major (blue)  and number of working females working with a Computer, Engineering and Science majors (red).It is evident the employed women are equally distributed between the managment and STEM majors From the means and medians we can see that the Management, Business, and Financial major (Mean:141420.2 Median:52883) is positive skewed and the Computer, Engineering and Science(Mean:28084.07 Median:10357.5) majors graph we can see that this too is right skewed"
+
+```{r}
+#Was not sure if the total variable had to stay the same.
+
+ggplot(jobs)+
+geom_histogram(data=subset(jobs,major_category=="Management, Business, and Financial"  ),
+               aes(y=total_earnings_female,x=..count..),fill=" blue",colour="white",bins=20)+
+geom_histogram(data=subset(jobs,major_category=="Computer, Engineering, and Science" ),
+               aes(y=total_earnings_female,x=-..count..),fill=" red",colour="white", bins=20) +
+  ggtitle("Employed women and major and earning")
+
+
+```
+
+"The salary for women with majors in business (blue)and STEM related subjects (red) are similar, but looks like more of the employed females major in Management as compared to STEM. The second graph proves it."
+
+```{r}
+#Comparing the number of women taking the majors
+
+ggplot(jobs)+
+geom_histogram(data=subset(jobs,major_category=="Management, Business, and Financial"  ),
+               aes(y=workers_female,x=..count..),fill=" blue",colour="white",bins=20)+
+geom_histogram(data=subset(jobs,major_category=="Computer, Engineering, and Science" ),
+               aes(y=workers_female,x=-..count..),fill=" red",colour="white", bins=20) +
+  ggtitle("Count of Employed women in a major")
+```
+
+More employed women have a management major which could be a reason for higher salaries.
+
+```{r}
+ggplot(jobs)+
+geom_histogram(data=subset(jobs,occupation=="Mechanical engineers"  ),
+               aes(y=total_earnings_female,x=..count..),fill=" blue",colour="white",bins=20)+
+geom_histogram(data=subset(jobs,occupation=="Mechanical engineers" ),
+               aes(y=total_earnings_male,x=-..count..),fill=" red",colour="white", bins=20) +
+  ggtitle("Earning male VS female")
+
+```
+
+
+"Female mechanical engineers(blue) earn lesser than male mechanical engineers (red). The mean of the female_workers as mechanical engineers is 16768 and median is 16641. The mean of their earnings is 78433 and median is 78641 (it makes the graph left skewed). on the other hand the mean male_workers as mechanical engineers is 207790 and median is 205414 and the mean for the male earnings of mechanical engineers is 82240 and median is 82115 (the graph is right skewed). On an average a male mechanical engineer gets paid 3,807 units more and there are 191,004 more of male engineers who are employed. So the disparity in the earnings could be just due to lesser women working assuming that all women with the capabilities to be a mechanical engineer are employed as mechanical engineers "
+
+```{r}
+ggplot(jobs)+
+geom_histogram(data=subset(jobs,major_category=="Computer, Engineering, and Science"  ),
+               aes(y=workers_female,x=..count..),fill=" red",colour="white",bins=20)+
+geom_histogram(data=subset(jobs,major_category=="Computer, Engineering, and Science" ),
+               aes(y=workers_male,x=-..count..),fill="blue",colour="white", bins=20) +
+  ggtitle("STEM majors Female Vs Men")
+
+```
+
+"Fewer women pursue Stem (blue) realted programs which could explain the difference in the total earnings or their could be a disparity in a man and womans salary"
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+ggplot(jobs, aes(y = major_category, x=workers_female), 
+       color = major_category) + 
+  geom_boxplot() + 
+  ggtitle('Boxplot of Worker_female') +
+  theme_minimal() + 
+  theme(legend.position = 'none')
+```
+
+"The graph representst the number of employed women and the and what was their major category in university. Healthcare Practitioners and technicals have the most outliers but sales and office has the highest range. The median for most of the majors is quite low and the range for Computer, Engineering and Science have the lowest range."
+
+
+```{r}
+ggplot(jobs, aes(y = major_category, x=total_earnings_female), color = major_category) + 
+  geom_boxplot() + 
+  ggtitle('Boxplot of Total_Earning_Female') +
+  theme_minimal() + 
+  theme(legend.position = 'none')
+
+
+
+```
+
+"There is a major disparity in the earnings of different majors. The pay in health and related feilds with STEM related majors seems well spread with few outliers on the other hand the production transportation and moving majors have a lot of outliers. The median for Healthcare Practitioners and Technical major(46867) is the highest. The highest earning range for women is in Natural Resources, Construction, and Maintenance Major (147849) and the highest paid female worker has a major in Healthcare Practitioners and Technical (1166388) and the minimum (least) (7447) paid female worker has a major in Production, Transportation, and Material Moving.The detailed the description of the means and medians per major is mentioned earlier. "
+
+```{r}
+ggplot(occupation.small, aes(y = occupation, x=total_earnings_female), 
+       color = major_category) + 
+  geom_boxplot() + 
+  ggtitle('Boxplot of Total_Earning_Female by selected occupation') +
+  theme_minimal() + 
+  theme(legend.position = 'none')
+```
+
+"The box plot shows the earnings of women in a selected few occupations. There are no outliers showing that all the employed womed get pais in the same range for these selected occupations apart from cheif executive which has an outlier. Bakers and Hairdressers have the lowest pay. I would that the safest carrer path from the selected few occupations is mechanical engineers, eventhough previously I have seen the the diffrence in the pay and the number of women in industry compared to men."
+
+
+
+\pagebreak
+
+### 4. Scatter plot
+
+```{r}
+ggplot(data = jobs) + 
+  geom_point(aes(x=workers_female, y=total_earnings_female, colour = major_category, shape=as.factor(year)
+                 ,alpha=0.05))+ 
+  ggtitle("Female earnings as per Major")+
+  theme_minimal()+
+  geom_smooth(aes(x=workers_female,y=total_earnings_female),colour="red")
+
+sub<-subset(jobs,major_category %in% c("Computer, Engineering, and Science"))
+ggplot(data = sub)+ 
+  geom_point(aes(x=workers_female, y=total_earnings_female, 
+                 colour = occupation, shape=as.factor(year)
+                 ,alpha=0.05))+ 
+  ggtitle("Female earnings-Computer, Engineering, and Science Major")+
+  theme_minimal()+
+  geom_smooth(aes(x=workers_female,y=total_earnings_female),
+              colour="red")+
+  theme(legend.position = 'none')
+
+ggplot(data = jobs) + 
+  geom_point(aes(x=workers_female, y=total_earnings_female, 
+                 colour = occupation, shape=as.factor(year)
+                 ,alpha=0.05))+ 
+  ggtitle("Female earnings as per Occupation")+
+  theme_minimal()+
+  geom_smooth(aes(x=workers_female,y=total_earnings_female),
+              colour="red")+
+  theme(legend.position = 'none')
+
+```
+
+"There does not seem to be a relation between the major and earnings for female, majority if the women earn below 150,000$. A few Each major has multiple points as the earnings change with occupation.
+Using graph 2 I filtered for one major-Computer, Engineering, and Science, on this graph I see that the earnings are different for dfferent occupations and that makes me belive that those two variables have a relation but when in the thrid graph there isnt  any specific relation to be identfied either"
+
+```{r}
+ggplot(data = occupation.small) + 
+  geom_point(aes(x=workers_female, y=total_earnings_female, colour = occupation, 
+                 size=10,shape=as.factor(year)
+                 ,alpha=0.5))+ 
+  ggtitle("Female earnings as per occupation")+theme_minimal()+
+  geom_smooth(aes(x=workers_female,y=total_earnings_female),colour="red")
+
+```
+
+"This graph shows the female earings as per the selected occupations. Mechanical female engineers earn the least and over the years the total earning does not change much. "
+
+
+
+
+
+
+
+
+
+
+
+\pagebreak
+
+### 5. Pairs plot
+
+```{r}
+library('GGally')
+ggpairs(jobs, aes(colour = major_category, alpha = 0.4), 
+        columns = c('total_earnings_female','percent_female',
+                    'total_earnings','total_earnings_male',
+                    'wage_percent_of_male'), 
+        upper='blank', 
+        diag=NULL) +
+  theme_minimal()
+```
+
+Total earnings and total_earnings_male have a linear relation. Thr more the male earning the more is the total earnings. This would insimuate that female earnings do not constitute much to the total earnings but the total_earnings and total earning female graph is also linear, increase in one leads to an increase in the other which would make sense as the total earnings are cumputed sum of the two genders earnings. The graph representing total_earning_female and total_earning_male aslo has a linear realation showing that the two incrase together which means when the male earnings increase female earnings also increase and they do that on the same rate (I would belive that the this increase is caised by the inflation in the market.) As they increase togetther by the same amount the difference between the pays is not reduced.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\pagebreak
+
+### 6. Plotting a Discrete Variable
+
+```{r}
+ggplot(data = jobs) + 
+  geom_point(aes(x =occupation, y =workers_female, colour = major_category,
+                 shape=as.factor(year),
+                 alpha=0.01))+theme_minimal()
+```
+
+This graph shows the total_earnings of women with different majors in differnt occupation in different years.For a better picture using a subset of occupation would be a good example
+
+
+
+
+```{r}
+library('ggExtra')
+occupation.small <- subset(jobs,occupation %in% c('Lawyers','Chief executives',
+'Mathemeticians','Industrial production managers','Mechanical engineers',
+'Engineering technicians, except drafters','Bakers','Doctors','Carpenters','Mathematicians','Artists and related workers','Hairdressers, hairstylists, and cosmetologists','Other teachers and instructors'))
+
+ggplot(occupation.small,
+       aes(y=occupation,x =workers_female,colour=major_category)) + 
+  geom_point(size=3,shape=as.factor(occupation.small$year))+
+  theme_minimal()+
+  theme(legend.position = 'right',legend.text= element_text(size=5),legend.title=element_text(size=5) )
+```
+
+"Most of the employed women in between 2013 and 2016 have been Hairdressers (1543555) and least number of women have been employed as Mathematicians(1967). The number of women in the selected occupations does not change much over the years"
